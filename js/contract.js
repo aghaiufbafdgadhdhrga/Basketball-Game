@@ -46,14 +46,59 @@ const ContractEngine = {
         return Math.max(0, CONFIG.SALARY_CAP - this.getTeamSalary(players));
     },
 
-    // Negotiate with player (returns offer result)
-    negotiate(player, offeredSalary, offeredYears, teamPrestige = 50) {
+    // Check if a signing fits under the cap (or soft cap exception)
+    canSignPlayer(teamPlayers, salary, settings) {
+        const capStrictness = settings ? settings.capStrictness : 'hard';
+        const currentSalary = this.getTeamSalary(teamPlayers);
+        const projectedSalary = currentSalary + salary;
+
+        if (capStrictness === 'hard') {
+            // Hard cap: cannot exceed salary cap at all
+            return projectedSalary <= CONFIG.SALARY_CAP;
+        } else {
+            // Soft cap: can exceed cap but not luxury tax threshold
+            return projectedSalary <= CONFIG.LUXURY_TAX_THRESHOLD;
+        }
+    },
+
+    // Check if a trade works under the cap
+    canExecuteTrade(teamPlayers, incomingPlayers, outgoingPlayers, settings) {
+        const capStrictness = settings ? settings.capStrictness : 'hard';
+        const currentSalary = this.getTeamSalary(teamPlayers);
+
+        const outgoingSalary = outgoingPlayers.reduce((sum, p) => sum + (p.contract ? p.contract.salary : 0), 0);
+        const incomingSalary = incomingPlayers.reduce((sum, p) => sum + (p.contract ? p.contract.salary : 0), 0);
+
+        const projectedSalary = currentSalary - outgoingSalary + incomingSalary;
+
+        if (capStrictness === 'hard') {
+            // Hard cap: projected salary must be under the cap
+            // Exception: if already over cap, incoming salary must be <= 125% of outgoing
+            if (currentSalary > CONFIG.SALARY_CAP) {
+                return incomingSalary <= outgoingSalary * 1.25;
+            }
+            return projectedSalary <= CONFIG.SALARY_CAP;
+        } else {
+            // Soft cap: incoming salary must be within 150% of outgoing if over cap
+            if (currentSalary > CONFIG.SALARY_CAP) {
+                return incomingSalary <= outgoingSalary * 1.50;
+            }
+            return projectedSalary <= CONFIG.LUXURY_TAX_THRESHOLD;
+        }
+    },
+
+    // Negotiate with player (returns offer result) - difficulty aware
+    negotiate(player, offeredSalary, offeredYears, teamPrestige = 50, settings = null) {
         const marketValue = PlayerEngine.estimateMarketValue(player);
         const desiredYears = PlayerEngine.estimateContractYears(player);
 
-        // Player's acceptance threshold
-        let salaryThreshold = marketValue * 0.85; // Will accept 85% of market value
-        let yearsThreshold = Math.max(1, desiredYears - 1);
+        // Get negotiation difficulty settings
+        const difficulty = settings ? settings.negotiationDifficulty : 'normal';
+        const diffSettings = DIFFICULTY_SETTINGS.negotiation[difficulty] || DIFFICULTY_SETTINGS.negotiation.normal;
+
+        // Player's acceptance threshold - adjusted by difficulty
+        let salaryThreshold = marketValue * 0.85 * diffSettings.salaryMultiplier;
+        let yearsThreshold = Math.max(1, desiredYears - 1 - diffSettings.yearsFlexibility);
 
         // Prestige adjustment
         if (teamPrestige > 70) salaryThreshold *= 0.90;
@@ -75,7 +120,7 @@ const ContractEngine = {
         }
 
         // Counter offer
-        const counterSalary = Math.round(marketValue * Utils.randFloat(0.95, 1.10));
+        const counterSalary = Math.round(marketValue * diffSettings.salaryMultiplier * Utils.randFloat(0.95, 1.10));
         const counterYears = desiredYears;
 
         let reason = '';

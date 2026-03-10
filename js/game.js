@@ -11,7 +11,7 @@ const game = {
     currentDay: 1,
     phase: 'setup', // setup, preseason, season, playoffs, offseason, draft, freeAgency
     userTeamId: null,
-    finances: null,
+    gameSettings: null,
     trainingSchedule: null,
     draftClass: [],
     draftOrder: [],
@@ -56,7 +56,7 @@ const game = {
         }
 
         // Initialize user team systems
-        this.finances = FinanceEngine.createFinances();
+        this.gameSettings = { ...DEFAULT_GAME_SETTINGS };
         this.trainingSchedule = TrainingEngine.createDefaultSchedule();
         this.messageLog = [];
 
@@ -271,15 +271,6 @@ const game = {
     startOffseason() {
         this.phase = 'offseason';
 
-        // Calculate finances
-        const userStanding = this.standings[this.userTeamId];
-        const userPlayers = this.getUserPlayers();
-        FinanceEngine.calculateSeasonFinances(
-            this.finances, userPlayers,
-            userStanding ? userStanding.wins : 41,
-            userStanding ? userStanding.losses : 41
-        );
-
         // Generate awards before contracts expire
         this.generateAwards();
 
@@ -425,7 +416,7 @@ const game = {
         this.autoSave();
     },
 
-    // Sign free agent
+    // Sign free agent - with cap enforcement
     signFreeAgent(playerId, salary, years) {
         const player = this.freeAgents.find(p => p.id === playerId);
         if (!player) return { success: false, message: 'Player not found.' };
@@ -435,7 +426,13 @@ const game = {
             return { success: false, message: 'Roster is full.' };
         }
 
-        const result = ContractEngine.negotiate(player, salary, years, this.getUserTeam().prestige);
+        // Check cap space
+        if (!ContractEngine.canSignPlayer(userPlayers, salary, this.gameSettings)) {
+            const capSpace = ContractEngine.getCapSpace(userPlayers);
+            return { success: false, message: `Cannot sign - exceeds salary cap. You have ${Utils.formatMoney(capSpace)} in cap space.` };
+        }
+
+        const result = ContractEngine.negotiate(player, salary, years, this.getUserTeam().prestige, this.gameSettings);
         if (result.accepted) {
             player.contract = result.contract;
             player.teamId = this.userTeamId;
@@ -466,7 +463,48 @@ const game = {
         return true;
     },
 
-    // Trade proposal
+    // Calculate trade value for a player (more sophisticated than just OVR)
+    calculateTradeValue(player, settings) {
+        const diffSettings = DIFFICULTY_SETTINGS.trade[settings ? settings.tradeDifficulty : 'normal'];
+        let value = 0;
+
+        // Base value from OVR (exponential - elite players are worth much more)
+        if (player.ovr >= 90) value += player.ovr * 4.0;
+        else if (player.ovr >= 85) value += player.ovr * 2.8;
+        else if (player.ovr >= 80) value += player.ovr * 2.2;
+        else if (player.ovr >= 75) value += player.ovr * 1.6;
+        else if (player.ovr >= 70) value += player.ovr * 1.2;
+        else value += player.ovr * 0.8;
+
+        // Potential value (especially for young players)
+        const potentialGap = player.potential - player.ovr;
+        if (player.age <= 25 && potentialGap > 0) {
+            value += potentialGap * 1.5;
+        }
+
+        // Age factor: young players are more valuable
+        if (player.age <= 23) value *= 1.25;
+        else if (player.age <= 27) value *= 1.10;
+        else if (player.age >= 33) value *= 0.70;
+        else if (player.age >= 35) value *= 0.50;
+
+        // Contract value: cheap good players are worth more
+        if (player.contract) {
+            const yearsLeft = player.contract.years - player.contract.yearsSigned;
+            const salaryPct = player.contract.salary / CONFIG.MAX_SALARY;
+            if (player.ovr >= 80 && salaryPct < 0.4) value *= 1.15; // Good player on cheap deal
+            if (yearsLeft >= 3 && player.ovr >= 75) value *= 1.10;  // Locked up long term
+        }
+
+        // Stars get extra value from AI's perspective (harder to pry away)
+        if (player.ovr >= 85) {
+            value *= diffSettings.starValueMultiplier;
+        }
+
+        return value;
+    },
+
+    // Trade proposal - with cap enforcement and better balance
     executeTrade(myPlayerIds, theirPlayerIds, otherTeamId) {
         const myPlayers = myPlayerIds.map(id => this.players.find(p => p.id === id)).filter(Boolean);
         const theirPlayers = theirPlayerIds.map(id => this.players.find(p => p.id === id)).filter(Boolean);
@@ -475,14 +513,49 @@ const game = {
             return { success: false, message: 'Invalid trade.' };
         }
 
-        // AI evaluation
-        const myValue = myPlayers.reduce((sum, p) => sum + p.ovr * 1.5 + p.potential, 0);
-        const theirValue = theirPlayers.reduce((sum, p) => sum + p.ovr * 1.5 + p.potential, 0);
+        const settings = this.gameSettings || DEFAULT_GAME_SETTINGS;
+        const diffSettings = DIFFICULTY_SETTINGS.trade[settings.tradeDifficulty] || DIFFICULTY_SETTINGS.trade.normal;
 
-        // AI wants slightly favorable trades
+        // 1. Check cap space for the user's team
+        const userPlayers = this.getUserPlayers();
+        if (!ContractEngine.canExecuteTrade(userPlayers, theirPlayers, myPlayers, settings)) {
+            return { success: false, message: 'Trade rejected - incoming salaries would exceed your salary cap. You need to match salaries more closely.' };
+        }
+
+        // 2. Check elite player limit - prevent stacking
+        const currentElite = userPlayers.filter(p => p.ovr >= 90 && !myPlayerIds.includes(p.id)).length;
+        const incomingElite = theirPlayers.filter(p => p.ovr >= 90).length;
+        if (currentElite + incomingElite > diffSettings.elitePlayerMax) {
+            return { success: false, message: `Trade rejected - you would have too many elite players (max ${diffSettings.elitePlayerMax} players rated 90+). The league office blocked this trade for competitive balance.` };
+        }
+
+        // 3. AI trade evaluation (much more sophisticated)
+        const myValue = myPlayers.reduce((sum, p) => sum + this.calculateTradeValue(p, settings), 0);
+        const theirValue = theirPlayers.reduce((sum, p) => sum + this.calculateTradeValue(p, settings), 0);
+
         const fairness = myValue / theirValue;
-        if (fairness < 0.85) {
-            return { success: false, message: 'The other team rejected the trade. They want more value in return.' };
+        if (fairness < diffSettings.fairnessThreshold) {
+            // Provide helpful feedback about why
+            const deficit = Math.round((1 - fairness) * 100);
+            let message = 'The other team rejected the trade.';
+            if (deficit > 30) {
+                message += ' They want significantly more value in return.';
+            } else if (deficit > 15) {
+                message += ' They want more value - try adding another player or pick.';
+            } else {
+                message += ' The trade is close but they want slightly more value.';
+            }
+            return { success: false, message };
+        }
+
+        // 4. AI also checks if they would be gutting their team
+        const otherTeamPlayers = this.getTeamPlayers(otherTeamId);
+        const otherTeamRemainingStars = otherTeamPlayers.filter(
+            p => p.ovr >= 80 && !theirPlayerIds.includes(p.id)
+        ).length;
+        const tradingStars = theirPlayers.filter(p => p.ovr >= 80).length;
+        if (tradingStars > 0 && otherTeamRemainingStars === 0 && fairness < 1.3) {
+            return { success: false, message: 'The other team rejected the trade - they don\'t want to give up all their star players without getting a star back.' };
         }
 
         // Execute trade
