@@ -175,14 +175,14 @@ const PlayerEngine = {
 
         let potential, targetOvr;
         if (rank <= 5) {
-            potential = Utils.clamp(Utils.randGauss(88, 6), 75, 99);
+            potential = Utils.clamp(Utils.randGauss(88, 6), 85, 99);
             targetOvr = Utils.clamp(Utils.randGauss(68, 8), 55, 80);
         } else if (rank <= 14) {
-            potential = Utils.clamp(Utils.randGauss(80, 6), 65, 97);
-            targetOvr = Utils.clamp(Utils.randGauss(62, 7), 50, 75);
+            potential = Utils.clamp(Utils.randGauss(80, 6), 80, 97);
+            targetOvr = Utils.clamp(Utils.randGauss(62, 7), 53, 78);
         } else if (rank <= 30) {
-            potential = Utils.clamp(Utils.randGauss(72, 6), 58, 92);
-            targetOvr = Utils.clamp(Utils.randGauss(55, 7), 42, 70);
+            potential = Utils.clamp(Utils.randGauss(72, 6), 75, 95);
+            targetOvr = Utils.clamp(Utils.randGauss(55, 7), 51, 76);
         } else if (rank <= 60) {
             potential = Utils.clamp(Utils.randGauss(64, 7), 48, 85);
             targetOvr = Utils.clamp(Utils.randGauss(48, 7), 35, 65);

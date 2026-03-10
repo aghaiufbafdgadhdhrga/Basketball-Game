@@ -16,24 +16,24 @@ const CONFIG = {
     PLAYOFF_TEAMS: 8,
     PLAYOFF_SERIES_WINS: 4,
     DRAFT_ROUNDS: 2,
-    DRAFT_PROSPECTS: 100,
+    DRAFT_PROSPECTS: 600,
     QUARTER_MINUTES: 12,
     STARTING_YEAR: 2026,
-    TRAINING_BOOST_MAX: 3,
+    TRAINING_BOOST_MAX: 5,
     GROWTH_PEAK_AGE: 27,
-    DECLINE_START_AGE: 32,
+    DECLINE_START_AGE: 40,
     // Max elite (90+ OVR) players allowed on one team via trade
-    MAX_ELITE_PLAYERS_TRADE: 3,
+    MAX_ELITE_PLAYERS_TRADE: 10,
 };
 
 // Default game settings
 const DEFAULT_GAME_SETTINGS = {
-    tradeDifficulty: 'normal',       // easy, normal, hard, extreme
+    tradeDifficulty: 'hard',       // easy, normal, hard, extreme
     negotiationDifficulty: 'normal', // easy, normal, hard
-    simDifficulty: 'normal',         // easy, normal, hard
-    developerSpeed: 'normal',        // slow, normal, fast
+    simDifficulty: 'hard',         // easy, normal, hard
+    developerSpeed: 'fast',        // slow, normal, fast
     capStrictness: 'hard',           // soft, hard
-    injuryFrequency: 'normal',       // off, low, normal, high
+    injuryFrequency: 'off',       // off, low, normal, high
 };
 
 // Difficulty multipliers
@@ -55,8 +55,8 @@ const DIFFICULTY_SETTINGS = {
         hard:   { userBoost: 0.93, aiBoost: 1.05 },
     },
     development: {
-        slow: { growthMultiplier: 1 },
-        normal: { growthMultiplier: 2 },
+        slow: { growthMultiplier: 1.0 },
+        normal: { growthMultiplier: 2.0 },
         fast: { growthMultiplier: 6.0 },
     },
     injury: {
