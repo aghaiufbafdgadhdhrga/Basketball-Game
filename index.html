@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Basketball Manager</h1>
+                <div class="season-info" id="sidebar-season-info"></div>
+            </div>
+
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-section-label">General</div>
+                    <div class="nav-item active" data-tab="dashboard">
+                        <span class="nav-icon">☰</span>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" data-tab="roster">
+                        <span class="nav-icon">⚫</span>
+                        <span>Roster</span>
+                    </div>
+                    <div class="nav-item" data-tab="standings">
+                        <span class="nav-icon">★</span>
+                        <span>Standings</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-label">Season</div>
+                    <div class="nav-item" data-tab="schedule">
+                        <span class="nav-icon">📅</span>
+                        <span>Schedule</span>
+                    </div>
+                    <div class="nav-item" data-tab="simulation">
+                        <span class="nav-icon">▶</span>
+                        <span>Simulate</span>
+                    </div>
+                    <div class="nav-item" data-tab="leaders">
+                        <span class="nav-icon">🏆</span>
+                        <span>Leaders</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-label">Management</div>
+                    <div class="nav-item" data-tab="draft">
+                        <span class="nav-icon">📜</span>
+                        <span>Draft</span>
+                    </div>
+                    <div class="nav-item" data-tab="freeagency">
+                        <span class="nav-icon">👤</span>
+                        <span>Free Agency</span>
+                    </div>
+                    <div class="nav-item" data-tab="trade">
+                        <span class="nav-icon">⇄</span>
+                        <span>Trade</span>
+                    </div>
+                    <div class="nav-item" data-tab="training">
+                        <span class="nav-icon">🏋</span>
+                        <span>Training</span>
+                    </div>
+                    <div class="nav-item" data-tab="finances">
+                        <span class="nav-icon">💰</span>
+                        <span>Finances</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-label">System</div>
+                    <div class="nav-item" data-tab="settings">
+                        <span class="nav-icon">⚙</span>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-area">
+            <div class="top-bar">
+                <span class="phase-badge" id="phase-badge">Pre-Season</span>
+                <div class="top-bar-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="game.manualSave(); UI.showToast('Game saved!')">Quick Save</button>
+                </div>
+            </div>
+            <div id="main-content">
+                <!-- Dynamic content rendered here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts (order matters) -->
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/player.js"></script>
+    <script src="../js/contract.js"></script>
+    <script src="../js/simulation.js"></script>
+    <script src="../js/season.js"></script>
+    <script src="../js/training.js"></script>
+    <script src="../js/finance.js"></script>
+    <script src="../js/draft.js"></script>
+    <script src="../js/save.js"></script>
+    <script src="../js/game.js"></script>
+    <script src="../js/ui.js"></script>
+
+    <script>
+        // Update sidebar season info and phase badge
+        function updateTopUI() {
+            const seasonInfo = document.getElementById('sidebar-season-info');
+            const phaseBadge = document.getElementById('phase-badge');
+            
+            if (game.getUserTeam()) {
+                seasonInfo.textContent = `${game.currentYear}-${(game.currentYear + 1).toString().slice(2)} | ${game.getUserTeam().abbr}`;
+            }
+
+            const phaseLabels = {
+                setup: 'Setup',
+                preseason: 'Pre-Season',
+                season: 'Regular Season',
+                playoffs: 'Playoffs',
+                offseason: 'Off-Season',
+                draft: 'Draft',
+                freeAgency: 'Free Agency',
+            };
+            phaseBadge.textContent = phaseLabels[game.phase] || game.phase;
+        }
+
+        // Override UI refresh to also update top UI
+        const originalRefresh = UI.refresh.bind(UI);
+        UI.refresh = function() {
+            originalRefresh();
+            updateTopUI();
+        };
+
+        const originalShowTab = UI.showTab.bind(UI);
+        UI.showTab = function(tab) {
+            originalShowTab(tab);
+            updateTopUI();
+        };
+
+        // Initial update after DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(updateTopUI, 100);
+        });
+    </script>
+
+
+</body></html>
