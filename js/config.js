@@ -19,15 +19,52 @@ const CONFIG = {
     DRAFT_PROSPECTS: 100,
     QUARTER_MINUTES: 12,
     STARTING_YEAR: 2026,
-    STARTING_BUDGET: 50000000,
-    TICKET_REVENUE_PER_GAME: 800000,
-    MERCH_REVENUE_PER_YEAR: 15000000,
-    TV_REVENUE_PER_YEAR: 80000000,
-    ARENA_COSTS_PER_YEAR: 20000000,
-    STAFF_COSTS_PER_YEAR: 15000000,
     TRAINING_BOOST_MAX: 3,
     GROWTH_PEAK_AGE: 27,
     DECLINE_START_AGE: 32,
+    // Max elite (90+ OVR) players allowed on one team via trade
+    MAX_ELITE_PLAYERS_TRADE: 3,
+};
+
+// Default game settings
+const DEFAULT_GAME_SETTINGS = {
+    tradeDifficulty: 'normal',       // easy, normal, hard, extreme
+    negotiationDifficulty: 'normal', // easy, normal, hard
+    simDifficulty: 'normal',         // easy, normal, hard
+    developerSpeed: 'normal',        // slow, normal, fast
+    capStrictness: 'hard',           // soft, hard
+    injuryFrequency: 'normal',       // off, low, normal, high
+};
+
+// Difficulty multipliers
+const DIFFICULTY_SETTINGS = {
+    trade: {
+        easy:    { fairnessThreshold: 0.70, elitePlayerMax: 5, starValueMultiplier: 1.0 },
+        normal:  { fairnessThreshold: 0.90, elitePlayerMax: 3, starValueMultiplier: 1.3 },
+        hard:    { fairnessThreshold: 1.00, elitePlayerMax: 2, starValueMultiplier: 1.6 },
+        extreme: { fairnessThreshold: 1.10, elitePlayerMax: 2, starValueMultiplier: 2.0 },
+    },
+    negotiation: {
+        easy:   { salaryMultiplier: 0.75, yearsFlexibility: 2 },
+        normal: { salaryMultiplier: 1.00, yearsFlexibility: 1 },
+        hard:   { salaryMultiplier: 1.25, yearsFlexibility: 0 },
+    },
+    sim: {
+        easy:   { userBoost: 1.08, aiBoost: 0.95 },
+        normal: { userBoost: 1.00, aiBoost: 1.00 },
+        hard:   { userBoost: 0.93, aiBoost: 1.05 },
+    },
+    development: {
+        slow: { growthMultiplier: 0.6 },
+        normal: { growthMultiplier: 1.0 },
+        fast: { growthMultiplier: 1.5 },
+    },
+    injury: {
+        off:    { chance: 0.000 },
+        low:    { chance: 0.003 },
+        normal: { chance: 0.008 },
+        high:   { chance: 0.015 },
+    },
 };
 
 const POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C'];

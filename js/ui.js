@@ -41,7 +41,7 @@ const UI = {
             case 'freeagency': content.innerHTML = this.renderFreeAgency(); break;
             case 'trade': content.innerHTML = this.renderTrade(); break;
             case 'training': content.innerHTML = this.renderTraining(); break;
-            case 'finances': content.innerHTML = this.renderFinances(); break;
+            case 'finances': content.innerHTML = this.renderCapManagement(); break;
             case 'leaders': content.innerHTML = this.renderLeaders(); break;
             case 'settings': content.innerHTML = this.renderSettings(); break;
         }
@@ -105,11 +105,11 @@ const UI = {
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Cap Space</div>
-                    <div class="stat-value">${Utils.formatMoney(capSpace)}</div>
+                    <div class="stat-value" style="color: ${capSpace > 0 ? '#4ade80' : '#f87171'}">${Utils.formatMoney(capSpace)}</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Budget</div>
-                    <div class="stat-value">${Utils.formatMoney(game.finances.budget)}</div>
+                    <div class="stat-label">Salary Cap</div>
+                    <div class="stat-value">${Utils.formatMoney(CONFIG.SALARY_CAP)}</div>
                 </div>
             </div>
 
@@ -804,61 +804,53 @@ const UI = {
         this.refresh();
     },
 
-    // ==================== FINANCES ====================
-    renderFinances() {
-        const report = FinanceEngine.getFinanceReport(game.finances);
-        const players = game.getUserPlayers();
-        const salary = ContractEngine.getTeamSalary(players);
-        const capSpace = ContractEngine.getCapSpace(players);
-        const luxTax = ContractEngine.getLuxuryTax(players);
+    // ==================== CAP MANAGEMENT ====================
+    renderCapManagement() {
+        const report = FinanceEngine.getCapReport(game.getUserPlayers());
+
+        // Cap bar visual
+        const capPct = Math.min(parseFloat(report.capUsagePct), 150);
+        const barColor = report.isOverCap ? '#f87171' : capPct > 85 ? '#fbbf24' : '#4ade80';
 
         return `
-        <div class="page-header"><h2>Finances</h2></div>
+        <div class="page-header"><h2>Cap Management</h2></div>
         <div class="finance-grid">
             <div class="stat-card">
-                <div class="stat-label">Budget</div>
-                <div class="stat-value">${Utils.formatMoney(report.budget)}</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-label">Total Payroll</div>
-                <div class="stat-value">${Utils.formatMoney(salary)}</div>
+                <div class="stat-value">${Utils.formatMoney(report.totalSalary)}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Salary Cap</div>
-                <div class="stat-value">${Utils.formatMoney(CONFIG.SALARY_CAP)}</div>
+                <div class="stat-value">${Utils.formatMoney(report.salaryCap)}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Cap Space</div>
-                <div class="stat-value ${capSpace > 0 ? 'text-green' : 'text-red'}">${Utils.formatMoney(capSpace)}</div>
+                <div class="stat-value" style="color: ${report.capSpace > 0 ? '#4ade80' : '#f87171'}">${Utils.formatMoney(report.capSpace)}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Luxury Tax</div>
-                <div class="stat-value ${luxTax > 0 ? 'text-red' : ''}">${Utils.formatMoney(luxTax)}</div>
+                <div class="stat-value" style="color: ${report.luxuryTax > 0 ? '#f87171' : 'inherit'}">${Utils.formatMoney(report.luxuryTax)}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Luxury Threshold</div>
-                <div class="stat-value">${Utils.formatMoney(CONFIG.LUXURY_TAX_THRESHOLD)}</div>
+                <div class="stat-value">${Utils.formatMoney(report.luxuryThreshold)}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Projected Cap Space</div>
+                <div class="stat-value" style="color: ${report.projectedCapSpace > 0 ? '#4ade80' : '#f87171'}">${Utils.formatMoney(report.projectedCapSpace)}</div>
             </div>
         </div>
 
-        <div class="finance-columns">
-            <div class="card">
-                <h3>Revenue</h3>
-                <div class="finance-row"><span>Ticket Sales</span><span class="text-green">${Utils.formatMoney(report.revenue.tickets)}</span></div>
-                <div class="finance-row"><span>Merchandise</span><span class="text-green">${Utils.formatMoney(report.revenue.merch)}</span></div>
-                <div class="finance-row"><span>TV Deal</span><span class="text-green">${Utils.formatMoney(report.revenue.tv)}</span></div>
-                <div class="finance-row"><span>Other</span><span class="text-green">${Utils.formatMoney(report.revenue.other)}</span></div>
-                <div class="finance-row total"><span>Total Revenue</span><span class="text-green">${Utils.formatMoney(report.revenue.total)}</span></div>
+        <div class="card">
+            <h3>Cap Usage (${report.capUsagePct}%)</h3>
+            <div style="background: #1e293b; border-radius: 8px; height: 24px; margin: 12px 0; position: relative; overflow: hidden;">
+                <div style="background: ${barColor}; height: 100%; width: ${Math.min(capPct, 100)}%; border-radius: 8px; transition: width 0.3s;"></div>
+                <div style="position: absolute; top: 0; left: ${100 * CONFIG.LUXURY_TAX_THRESHOLD / CONFIG.SALARY_CAP}%; width: 2px; height: 100%; background: #f59e0b;" title="Luxury Tax Line"></div>
             </div>
-
-            <div class="card">
-                <h3>Expenses</h3>
-                <div class="finance-row"><span>Player Salaries</span><span class="text-red">${Utils.formatMoney(report.expenses.salaries)}</span></div>
-                <div class="finance-row"><span>Arena Operations</span><span class="text-red">${Utils.formatMoney(report.expenses.arena)}</span></div>
-                <div class="finance-row"><span>Staff</span><span class="text-red">${Utils.formatMoney(report.expenses.staff)}</span></div>
-                <div class="finance-row"><span>Luxury Tax</span><span class="text-red">${Utils.formatMoney(report.expenses.luxuryTax)}</span></div>
-                <div class="finance-row"><span>Other</span><span class="text-red">${Utils.formatMoney(report.expenses.other)}</span></div>
-                <div class="finance-row total"><span>Total Expenses</span><span class="text-red">${Utils.formatMoney(report.expenses.total)}</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8;">
+                <span>$0</span>
+                <span>Cap: ${Utils.formatMoney(CONFIG.SALARY_CAP)}</span>
+                <span>Lux: ${Utils.formatMoney(CONFIG.LUXURY_TAX_THRESHOLD)}</span>
             </div>
         </div>
 
@@ -867,33 +859,33 @@ const UI = {
             <table class="data-table">
                 <thead><tr><th>Player</th><th>Pos</th><th>OVR</th><th>Salary</th><th>Years Left</th><th>Total Value</th></tr></thead>
                 <tbody>
-                    ${players.map(p => `
-                        <tr>
-                            <td>${PlayerEngine.getFullName(p)}</td>
-                            <td>${p.position}</td>
-                            <td><span class="ovr-badge ${Utils.getOvrClass(p.ovr)}">${p.ovr}</span></td>
-                            <td>${p.contract ? Utils.formatMoney(p.contract.salary) : '-'}</td>
-                            <td>${p.contract ? (p.contract.years - p.contract.yearsSigned) : '-'}</td>
-                            <td>${p.contract ? Utils.formatMoney(p.contract.totalValue) : '-'}</td>
+                    ${report.contracts.map(c => `
+                        <tr class="clickable" onclick="UI.showPlayerModal('${c.player.id}')">
+                            <td>${c.name}</td>
+                            <td><span class="pos-badge pos-${c.position}">${c.position}</span></td>
+                            <td><span class="ovr-badge ${Utils.getOvrClass(c.ovr)}">${c.ovr}</span></td>
+                            <td>${Utils.formatMoney(c.salary)}</td>
+                            <td>${c.yearsLeft}</td>
+                            <td>${Utils.formatMoney(c.totalValue)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
         </div>
 
-        ${report.history.length > 0 ? `
+        ${report.expiringThisYear.length > 0 ? `
         <div class="card">
-            <h3>Financial History</h3>
+            <h3>Expiring Contracts (This Year)</h3>
+            <div style="color: #94a3b8; margin-bottom: 8px;">These players will become free agents after the season.</div>
             <table class="data-table">
-                <thead><tr><th>Year</th><th>Revenue</th><th>Expenses</th><th>Profit/Loss</th><th>Budget</th></tr></thead>
+                <thead><tr><th>Player</th><th>Pos</th><th>OVR</th><th>Current Salary</th></tr></thead>
                 <tbody>
-                    ${report.history.map(h => `
+                    ${report.expiringThisYear.map(c => `
                         <tr>
-                            <td>${h.year}</td>
-                            <td class="text-green">${Utils.formatMoney(h.revenue)}</td>
-                            <td class="text-red">${Utils.formatMoney(h.expenses)}</td>
-                            <td class="${h.profit >= 0 ? 'text-green' : 'text-red'}">${Utils.formatMoney(h.profit)}</td>
-                            <td>${Utils.formatMoney(h.budget)}</td>
+                            <td>${c.name}</td>
+                            <td>${c.position}</td>
+                            <td><span class="ovr-badge ${Utils.getOvrClass(c.ovr)}">${c.ovr}</span></td>
+                            <td>${Utils.formatMoney(c.salary)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -946,10 +938,90 @@ const UI = {
     renderSettings() {
         const manualInfo = SaveEngine.getSaveInfo('manual');
         const autoInfo = SaveEngine.getSaveInfo('auto');
+        const settings = game.gameSettings || DEFAULT_GAME_SETTINGS;
+
+        const makeSelect = (name, value, options) => {
+            return `<select onchange="UI.updateGameSetting('${name}', this.value)" style="padding: 6px 12px; border-radius: 6px; background: #1e293b; color: #e2e8f0; border: 1px solid #334155;">
+                ${options.map(opt => `<option value="${opt.value}" ${value === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+            </select>`;
+        };
 
         return `
         <div class="page-header"><h2>Settings</h2></div>
         <div class="settings-grid">
+            <div class="card">
+                <h3>Game Difficulty</h3>
+                <div style="display: grid; gap: 16px;">
+                    <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Trade Difficulty</strong>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">How hard it is to make trades with AI teams</div>
+                        </div>
+                        ${makeSelect('tradeDifficulty', settings.tradeDifficulty, [
+                            { value: 'easy', label: 'Easy' },
+                            { value: 'normal', label: 'Normal' },
+                            { value: 'hard', label: 'Hard' },
+                            { value: 'extreme', label: 'Extreme' },
+                        ])}
+                    </div>
+                    <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Negotiation Difficulty</strong>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">How demanding free agents are in contract talks</div>
+                        </div>
+                        ${makeSelect('negotiationDifficulty', settings.negotiationDifficulty, [
+                            { value: 'easy', label: 'Easy' },
+                            { value: 'normal', label: 'Normal' },
+                            { value: 'hard', label: 'Hard' },
+                        ])}
+                    </div>
+                    <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Simulation Difficulty</strong>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">Affects your team's performance vs AI teams in games</div>
+                        </div>
+                        ${makeSelect('simDifficulty', settings.simDifficulty, [
+                            { value: 'easy', label: 'Easy' },
+                            { value: 'normal', label: 'Normal' },
+                            { value: 'hard', label: 'Hard' },
+                        ])}
+                    </div>
+                    <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Player Development Speed</strong>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">How fast players grow from training</div>
+                        </div>
+                        ${makeSelect('developerSpeed', settings.developerSpeed, [
+                            { value: 'slow', label: 'Slow' },
+                            { value: 'normal', label: 'Normal' },
+                            { value: 'fast', label: 'Fast' },
+                        ])}
+                    </div>
+                    <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Cap Strictness</strong>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">Hard cap = strict limit. Soft cap = more flexibility with exceptions</div>
+                        </div>
+                        ${makeSelect('capStrictness', settings.capStrictness, [
+                            { value: 'soft', label: 'Soft Cap' },
+                            { value: 'hard', label: 'Hard Cap' },
+                        ])}
+                    </div>
+                    <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Injury Frequency</strong>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">How often players get injured during games</div>
+                        </div>
+                        ${makeSelect('injuryFrequency', settings.injuryFrequency, [
+                            { value: 'off', label: 'Off' },
+                            { value: 'low', label: 'Low' },
+                            { value: 'normal', label: 'Normal' },
+                            { value: 'high', label: 'High' },
+                        ])}
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <h3>Save / Load</h3>
                 <div class="settings-row">
@@ -986,6 +1058,13 @@ const UI = {
                 </div>
             </div>
         </div>`;
+    },
+
+    updateGameSetting(key, value) {
+        if (!game.gameSettings) game.gameSettings = { ...DEFAULT_GAME_SETTINGS };
+        game.gameSettings[key] = value;
+        game.autoSave();
+        this.showToast(`Setting updated: ${key} = ${value}`);
     },
 
     // ==================== MODALS ====================

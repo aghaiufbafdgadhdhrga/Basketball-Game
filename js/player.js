@@ -16,6 +16,9 @@ const PlayerEngine = {
         const attributes = this.generateAttributes(position, targetOvr, age);
         const ovr = this.calculateOvr(attributes, position);
 
+        // Ensure potential is always >= current OVR
+        const adjustedPotential = Math.max(potential, ovr);
+
         const player = {
             id,
             firstName,
@@ -23,7 +26,7 @@ const PlayerEngine = {
             age,
             position,
             attributes,
-            potential,
+            potential: adjustedPotential,
             ovr,
             teamId: options.teamId || null,
             contract: options.contract || null,
@@ -44,10 +47,11 @@ const PlayerEngine = {
     },
 
     generatePotential(age) {
-        if (age <= 22) return Utils.clamp(Utils.randGauss(72, 15), 40, 99);
-        if (age <= 27) return Utils.clamp(Utils.randGauss(65, 12), 35, 95);
-        if (age <= 31) return Utils.clamp(Utils.randGauss(55, 10), 30, 85);
-        return Utils.clamp(Utils.randGauss(45, 8), 25, 70);
+        // Base potential by age - will be adjusted upward to be >= OVR in generatePlayer
+        if (age <= 22) return Utils.clamp(Utils.randGauss(78, 12), 50, 99);
+        if (age <= 27) return Utils.clamp(Utils.randGauss(72, 10), 45, 99);
+        if (age <= 31) return Utils.clamp(Utils.randGauss(65, 8), 40, 95);
+        return Utils.clamp(Utils.randGauss(55, 8), 35, 85);
     },
 
     generateTargetOvr(age, potential) {
@@ -171,21 +175,23 @@ const PlayerEngine = {
 
         let potential, targetOvr;
         if (rank <= 5) {
-            potential = Utils.clamp(Utils.randGauss(85, 8), 70, 99);
+            potential = Utils.clamp(Utils.randGauss(88, 6), 75, 99);
             targetOvr = Utils.clamp(Utils.randGauss(68, 8), 55, 80);
         } else if (rank <= 14) {
-            potential = Utils.clamp(Utils.randGauss(75, 8), 60, 95);
+            potential = Utils.clamp(Utils.randGauss(80, 6), 65, 97);
             targetOvr = Utils.clamp(Utils.randGauss(62, 7), 50, 75);
         } else if (rank <= 30) {
-            potential = Utils.clamp(Utils.randGauss(65, 8), 50, 88);
+            potential = Utils.clamp(Utils.randGauss(72, 6), 58, 92);
             targetOvr = Utils.clamp(Utils.randGauss(55, 7), 42, 70);
         } else if (rank <= 60) {
-            potential = Utils.clamp(Utils.randGauss(58, 8), 40, 82);
+            potential = Utils.clamp(Utils.randGauss(64, 7), 48, 85);
             targetOvr = Utils.clamp(Utils.randGauss(48, 7), 35, 65);
         } else {
-            potential = Utils.clamp(Utils.randGauss(50, 10), 35, 78);
+            potential = Utils.clamp(Utils.randGauss(55, 8), 40, 80);
             targetOvr = Utils.clamp(Utils.randGauss(42, 8), 30, 60);
         }
+        // Ensure potential >= targetOvr for draft prospects
+        potential = Math.max(potential, targetOvr);
 
         const position = Utils.pickRandom(POSITIONS);
         const player = this.generatePlayer({
@@ -294,9 +300,12 @@ const PlayerEngine = {
         player.age += 1;
         player.experience += 1;
 
-        // Slight potential decay
+        // Slight potential decay - but potential never drops below current OVR
         if (age > 25) {
             player.potential = Math.max(player.ovr, player.potential - Utils.randInt(0, 2));
+        } else {
+            // Young players: ensure potential stays >= OVR even after growth
+            player.potential = Math.max(player.ovr, player.potential);
         }
 
         // Archive season stats to career

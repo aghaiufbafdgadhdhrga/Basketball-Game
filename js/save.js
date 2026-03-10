@@ -118,7 +118,7 @@ const SaveEngine = {
             currentDay: game.currentDay,
             phase: game.phase,
             userTeamId: game.userTeamId,
-            finances: game.finances,
+            gameSettings: game.gameSettings,
             trainingSchedule: game.trainingSchedule,
             draftClass: game.draftClass,
             draftOrder: game.draftOrder,
@@ -141,7 +141,7 @@ const SaveEngine = {
         game.currentDay = state.currentDay;
         game.phase = state.phase;
         game.userTeamId = state.userTeamId;
-        game.finances = state.finances || FinanceEngine.createFinances();
+        game.gameSettings = state.gameSettings || { ...DEFAULT_GAME_SETTINGS };
         game.trainingSchedule = state.trainingSchedule || TrainingEngine.createDefaultSchedule();
         game.draftClass = state.draftClass || [];
         game.draftOrder = state.draftOrder || [];

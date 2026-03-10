@@ -4,9 +4,18 @@
 
 const SimEngine = {
     // Simulate a full game between two teams
-    simulateGame(homeTeam, awayTeam, allPlayers) {
+    simulateGame(homeTeam, awayTeam, allPlayers, gameSettings = null) {
         const homePlayers = this.getTeamPlayers(homeTeam, allPlayers);
         const awayPlayers = this.getTeamPlayers(awayTeam, allPlayers);
+
+        // Store difficulty settings for use in possession simulation
+        const settings = gameSettings || (typeof game !== 'undefined' && game.gameSettings) || null;
+        const simDiff = settings ? (DIFFICULTY_SETTINGS.sim[settings.simDifficulty] || DIFFICULTY_SETTINGS.sim.normal) : DIFFICULTY_SETTINGS.sim.normal;
+        const userTeamId = (typeof game !== 'undefined' && game.userTeamId) || null;
+        this._currentSimBoost = {
+            home: homeTeam.id === userTeamId ? simDiff.userBoost : simDiff.aiBoost,
+            away: awayTeam.id === userTeamId ? simDiff.userBoost : simDiff.aiBoost,
+        };
 
         if (homePlayers.length < 5 || awayPlayers.length < 5) {
             return this.createForfeitResult(homeTeam, awayTeam, homePlayers.length >= 5);
@@ -125,16 +134,17 @@ const SimEngine = {
     simulateQuarter(homeLineup, awayLineup, boxScore, quarterIdx, homePlayers, awayPlayers) {
         const possessions = Utils.randInt(24, 28); // per team per quarter
         let homeQ = 0, awayQ = 0;
+        const boost = this._currentSimBoost || { home: 1.0, away: 1.0 };
 
         for (let i = 0; i < possessions; i++) {
             // Home possession
             homeQ += this.simulatePossession(
-                homeLineup, awayLineup, boxScore.homePlayerStats, boxScore.awayPlayerStats, homePlayers
+                homeLineup, awayLineup, boxScore.homePlayerStats, boxScore.awayPlayerStats, homePlayers, boost.home
             );
 
             // Away possession
             awayQ += this.simulatePossession(
-                awayLineup, homeLineup, boxScore.awayPlayerStats, boxScore.homePlayerStats, awayPlayers
+                awayLineup, homeLineup, boxScore.awayPlayerStats, boxScore.homePlayerStats, awayPlayers, boost.away
             );
         }
 
@@ -190,7 +200,7 @@ const SimEngine = {
         }
     },
 
-    simulatePossession(offLineup, defLineup, offStats, defStats, allOffPlayers) {
+    simulatePossession(offLineup, defLineup, offStats, defStats, allOffPlayers, difficultyBoost = 1.0) {
         // Pick ball handler (weighted by ball handling + passing)
         const onCourt = offLineup.starters;
         const handler = this.pickBallHandler(onCourt);
@@ -212,7 +222,7 @@ const SimEngine = {
         // Determine shot type
         const shotType = this.determineShotType(handler, onCourt);
         const shooter = shotType.shooter;
-        const shotResult = this.attemptShot(shotType, shooter, defLineup.starters, offStats, defStats);
+        const shotResult = this.attemptShot(shotType, shooter, defLineup.starters, offStats, defStats, difficultyBoost);
 
         // Assist tracking
         if (shotResult.made && shooter.id !== handler.id && Math.random() < 0.6) {
@@ -276,7 +286,7 @@ const SimEngine = {
         return { type, shooter };
     },
 
-    attemptShot(shotType, shooter, defenders, offStats, defStats) {
+    attemptShot(shotType, shooter, defenders, offStats, defStats, difficultyBoost = 1.0) {
         const { type } = shotType;
         let basePct, attr, points;
 
@@ -318,6 +328,9 @@ const SimEngine = {
                 return { made: false, points: 0 };
             }
         }
+
+        // Apply difficulty boost to shot percentage
+        basePct *= difficultyBoost;
 
         offStats[shooter.id].fgAttempted++;
         const made = Math.random() < basePct;
