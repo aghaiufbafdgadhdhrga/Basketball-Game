@@ -1260,7 +1260,7 @@ const UI = {
                     </div>
                     <div class="form-group">
                         <label>Contract Years</label>
-                        <input type="number" id="sign-years" value="${suggestedYears}" min="1" max="5">
+                        <input type="number" id="sign-years" value="${suggestedYears}" min="1" max="500">
                     </div>
                     <div id="sign-result"></div>
                     <button class="btn btn-primary btn-lg" onclick="UI.submitSignOffer('${player.id}')">Submit Offer</button>

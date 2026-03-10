@@ -55,9 +55,9 @@ const DIFFICULTY_SETTINGS = {
         hard:   { userBoost: 0.93, aiBoost: 1.05 },
     },
     development: {
-        slow: { growthMultiplier: 0.6 },
-        normal: { growthMultiplier: 1.0 },
-        fast: { growthMultiplier: 1.5 },
+        slow: { growthMultiplier: 1 },
+        normal: { growthMultiplier: 2 },
+        fast: { growthMultiplier: 6.0 },
     },
     injury: {
         off:    { chance: 0.000 },
