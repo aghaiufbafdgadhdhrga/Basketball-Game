@@ -77,12 +77,19 @@ const SimEngine = {
         this.updateSeasonStats(homePlayers, boxScore.homePlayerStats);
         this.updateSeasonStats(awayPlayers, boxScore.awayPlayerStats);
 
+        // Check for injuries based on injury frequency setting
+        const injurySettings = settings ? settings.injuryFrequency : 'normal';
+        const injuryChance = (DIFFICULTY_SETTINGS.injury[injurySettings] || DIFFICULTY_SETTINGS.injury.normal).chance;
+        if (injuryChance > 0) {
+            boxScore.injuries = this.checkInjuries([...homePlayers, ...awayPlayers], injuryChance);
+        }
+
         return boxScore;
     },
 
     getTeamPlayers(team, allPlayers) {
         return allPlayers
-            .filter(p => p.teamId === team.id)
+            .filter(p => p.teamId === team.id && !(p.injury && p.injury.gamesRemaining > 0))
             .sort((a, b) => b.ovr - a.ovr);
     },
 
@@ -415,6 +422,62 @@ const SimEngine = {
             p.seasonStats.ftAttempted += gs.ftAttempted;
             p.gamesPlayed = p.seasonStats.gamesPlayed;
         }
+    },
+
+    // Check for injuries after a game
+    checkInjuries(players, injuryChance) {
+        const injuries = [];
+        const injuryTypes = [
+            { name: 'Sprained Ankle', gamesOut: Utils.randInt(3, 10) },
+            { name: 'Knee Soreness', gamesOut: Utils.randInt(2, 7) },
+            { name: 'Hamstring Strain', gamesOut: Utils.randInt(5, 15) },
+            { name: 'Back Spasms', gamesOut: Utils.randInt(2, 8) },
+            { name: 'Shoulder Injury', gamesOut: Utils.randInt(5, 20) },
+            { name: 'Groin Strain', gamesOut: Utils.randInt(4, 12) },
+            { name: 'Calf Strain', gamesOut: Utils.randInt(3, 10) },
+            { name: 'Concussion Protocol', gamesOut: Utils.randInt(1, 5) },
+            { name: 'Torn ACL', gamesOut: Utils.randInt(40, 82) },
+            { name: 'Fractured Hand', gamesOut: Utils.randInt(10, 30) },
+        ];
+
+        for (const player of players) {
+            // Skip already injured players
+            if (player.injury && player.injury.gamesRemaining > 0) continue;
+
+            // Injury chance per player per game, modified by stamina
+            const staminaMod = 1.0 - (player.attributes.stamina / 99) * 0.4; // high stamina = less injury
+            const ageMod = player.age > 32 ? 1.5 : player.age > 28 ? 1.2 : 1.0;
+            const roll = Math.random();
+
+            if (roll < injuryChance * staminaMod * ageMod) {
+                // Severe injuries are rare
+                const severityRoll = Math.random();
+                let injury;
+                if (severityRoll < 0.02) {
+                    injury = injuryTypes[8]; // ACL - very rare
+                } else if (severityRoll < 0.08) {
+                    injury = injuryTypes[9]; // Fracture - rare
+                } else {
+                    // Pick from minor/moderate injuries
+                    injury = injuryTypes[Utils.randInt(0, 7)];
+                }
+
+                player.injury = {
+                    type: injury.name,
+                    gamesRemaining: injury.gamesOut,
+                };
+
+                injuries.push({
+                    player: PlayerEngine.getFullName(player),
+                    playerId: player.id,
+                    teamId: player.teamId,
+                    injury: injury.name,
+                    gamesOut: injury.gamesOut,
+                });
+            }
+        }
+
+        return injuries;
     },
 
     createForfeitResult(homeTeam, awayTeam, homeWins) {

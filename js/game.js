@@ -180,10 +180,34 @@ const game = {
         this.currentDay = day + 1;
         this.standings = SeasonEngine.calculateStandings(this.teams, this.schedule);
 
+        // Process injuries from game results
+        for (const result of results) {
+            if (result.result && result.result.injuries) {
+                for (const inj of result.result.injuries) {
+                    if (inj.teamId === this.userTeamId) {
+                        this.addMessage(`INJURY: ${inj.player} suffered a ${inj.injury} and will miss ${inj.gamesOut} games.`);
+                    }
+                }
+            }
+        }
+
+        // Tick down injury counters for all players
+        for (const p of this.players) {
+            if (p.injury && p.injury.gamesRemaining > 0) {
+                p.injury.gamesRemaining--;
+                if (p.injury.gamesRemaining <= 0) {
+                    if (p.teamId === this.userTeamId) {
+                        this.addMessage(`${PlayerEngine.getFullName(p)} has recovered from their ${p.injury.type}.`);
+                    }
+                    p.injury = null;
+                }
+            }
+        }
+
         // Apply training every 7 days
         if (day % 7 === 0) {
             const userPlayers = this.getUserPlayers();
-            TrainingEngine.applyWeeklyTraining(userPlayers, this.trainingSchedule);
+            TrainingEngine.applyWeeklyTraining(userPlayers, this.trainingSchedule, this.gameSettings);
         }
 
         // Auto-save every 10 days
