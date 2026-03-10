@@ -44,6 +44,8 @@ const UI = {
             case 'finances': content.innerHTML = this.renderCapManagement(); break;
             case 'leaders': content.innerHTML = this.renderLeaders(); break;
             case 'settings': content.innerHTML = this.renderSettings(); break;
+            case 'career': content.innerHTML = CareerUI.renderCareer(); break;
+            case 'saves': content.innerHTML = this.renderSaveManager(); break;
         }
         this.bindTabEvents(tab);
     },
@@ -404,27 +406,74 @@ const UI = {
             return this.renderPlayoffs();
         }
 
+        const standing = game.standings[game.userTeamId];
+        let record = '0-0';
+        let winPct = '.000';
+        if (standing) {
+            record = `${standing.wins}-${standing.losses}`;
+            winPct = (standing.wins + standing.losses > 0) ? (standing.wins / (standing.wins + standing.losses)).toFixed(3) : '.000';
+        }
+
+        // Get upcoming user games
+        const userUpcoming = game.schedule
+            .filter(g => !g.played && (g.homeTeamId === game.userTeamId || g.awayTeamId === game.userTeamId))
+            .slice(0, 5);
+
         return `
         <div class="page-header"><h2>Game Simulation</h2></div>
-        <div class="sim-controls card">
-            <h3>Season Progress</h3>
-            <div class="progress-bar-container">
-                <div class="progress-bar" style="width: ${this.getSeasonProgress()}%"></div>
-                <span class="progress-text">${this.getSeasonProgress().toFixed(0)}%</span>
+
+        <div class="sim-dashboard-grid">
+            <div class="card sim-record-card">
+                <div class="sim-record-big">${record}</div>
+                <div class="sim-record-pct">${winPct} WIN%</div>
+                ${standing ? `
+                    <div class="sim-record-details">
+                        <span>PF: ${(standing.pointsFor / Math.max(1, standing.wins + standing.losses)).toFixed(1)}</span>
+                        <span>PA: ${(standing.pointsAgainst / Math.max(1, standing.wins + standing.losses)).toFixed(1)}</span>
+                        <span>Streak: ${standing.streak > 0 ? 'W' + standing.streak : standing.streak < 0 ? 'L' + Math.abs(standing.streak) : '-'}</span>
+                    </div>` : ''}
             </div>
-            <div class="sim-buttons">
-                ${game.phase === 'preseason' ? '<button class="btn btn-primary btn-lg" onclick="UI.actionStartSeason()">Start Season</button>' : ''}
-                ${game.phase === 'season' ? `
-                    <button class="btn btn-primary" onclick="UI.actionSimDay()">Sim 1 Day</button>
-                    <button class="btn btn-secondary" onclick="UI.actionSimWeek()">Sim 1 Week</button>
-                    <button class="btn btn-secondary" onclick="UI.actionSimMonth()">Sim 1 Month</button>
-                    <button class="btn btn-warning" onclick="UI.actionSimSeason()">Sim to End</button>
-                ` : ''}
+
+            <div class="card">
+                <h3>Season Progress</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: ${this.getSeasonProgress()}%"></div>
+                    <span class="progress-text">${this.getSeasonProgress().toFixed(0)}%</span>
+                </div>
+                <div class="sim-buttons">
+                    ${game.phase === 'preseason' ? '<button class="btn btn-primary btn-lg" onclick="UI.actionStartSeason()">Start Season</button>' : ''}
+                    ${game.phase === 'season' ? `
+                        <button class="btn btn-primary" onclick="UI.actionSimDay()">Sim 1 Day</button>
+                        <button class="btn btn-secondary" onclick="UI.actionSimWeek()">Sim 1 Week</button>
+                        <button class="btn btn-secondary" onclick="UI.actionSimMonth()">Sim 1 Month</button>
+                        <button class="btn btn-warning" onclick="UI.actionSimSeason()">Sim to End</button>
+                    ` : ''}
+                </div>
             </div>
         </div>
-        <div id="sim-results" class="card">
-            <h3>Recent Results</h3>
-            ${this.renderRecentResults()}
+
+        <div class="sim-columns">
+            <div class="card">
+                <h3>Recent Results</h3>
+                ${this.renderRecentResults()}
+            </div>
+            <div class="card">
+                <h3>Upcoming Schedule</h3>
+                ${userUpcoming.length === 0 ? '<div class="empty-state">No upcoming games</div>' : `
+                <div class="upcoming-games-list">
+                    ${userUpcoming.map(g => {
+                        const home = game.getTeam(g.homeTeamId);
+                        const away = game.getTeam(g.awayTeamId);
+                        const isHome = g.homeTeamId === game.userTeamId;
+                        const opp = isHome ? away : home;
+                        return `
+                        <div class="upcoming-game-item">
+                            <span class="upcoming-day">Day ${g.day}</span>
+                            <span class="upcoming-matchup">${isHome ? 'vs' : '@'} <strong style="color:${opp?.color || '#fff'}">${opp?.abbr || '?'}</strong></span>
+                        </div>`;
+                    }).join('')}
+                </div>`}
+            </div>
         </div>`;
     },
 
@@ -934,6 +983,71 @@ const UI = {
         </div>`;
     },
 
+    // ==================== SAVE MANAGER ====================
+    renderSaveManager() {
+        const allSaves = SaveEngine.getAllSaves();
+
+        return `
+        <div class="page-header"><h2>Save Manager</h2></div>
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <div class="quick-actions">
+                <button class="btn btn-primary" onclick="UI.createNewSaveSlot()">New Save Slot</button>
+                <button class="btn btn-secondary" onclick="SaveEngine.exportSave(); UI.showToast('Save exported!')">Export Save</button>
+                <label class="btn btn-secondary file-upload-btn">Import Save <input type="file" accept=".json" onchange="UI.importSave(event)" style="display:none"></label>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Save Slots (${allSaves.length})</h3>
+            ${allSaves.length === 0 ? '<div class="empty-state">No saves found. Create a new save or start a game.</div>' : `
+            <div class="save-slots-list">
+                ${allSaves.map(s => `
+                    <div class="save-slot-item">
+                        <div class="save-slot-info">
+                            <div class="save-slot-name">${s.name || s.slotId}</div>
+                            <div class="save-slot-meta">
+                                ${s.team ? s.team + ' | ' : ''}${s.year ? s.year + ' | ' : ''}${s.date || 'Unknown date'}
+                            </div>
+                        </div>
+                        <div class="save-slot-actions">
+                            <button class="btn btn-small btn-primary" onclick="UI.actionLoad('${s.slotId}'); document.querySelector('.start-screen')?.remove();">Load</button>
+                            <button class="btn btn-small btn-secondary" onclick="UI.renameSaveSlot('${s.slotId}')">Rename</button>
+                            <button class="btn btn-small btn-secondary" onclick="game.saveToSlot('${s.slotId}', '${(s.name || '').replace(/'/g, '')}'); UI.showToast('Overwritten!'); UI.showTab('saves');">Overwrite</button>
+                            ${s.slotId !== 'auto' ? `<button class="btn btn-small btn-danger" onclick="UI.deleteSaveSlot('${s.slotId}')">Delete</button>` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>`}
+        </div>`;
+    },
+
+    createNewSaveSlot() {
+        const name = prompt('Enter a name for this save:');
+        if (!name) return;
+        const result = game.saveToSlot(null, name);
+        if (result && result.success) {
+            this.showToast('New save created!', 'success');
+            this.showTab('saves');
+        } else {
+            this.showToast('Failed to create save.', 'error');
+        }
+    },
+
+    renameSaveSlot(slotId) {
+        const newName = prompt('Enter new name:');
+        if (!newName) return;
+        SaveEngine.renameSave(slotId, newName);
+        this.showToast('Save renamed!', 'success');
+        this.showTab('saves');
+    },
+
+    deleteSaveSlot(slotId) {
+        if (!confirm('Delete this save? This cannot be undone.')) return;
+        SaveEngine.deleteSave(slotId);
+        this.showToast('Save deleted.');
+        this.showTab('saves');
+    },
+
     // ==================== SETTINGS ====================
     renderSettings() {
         const manualInfo = SaveEngine.getSaveInfo('manual');
@@ -1025,13 +1139,16 @@ const UI = {
             <div class="card">
                 <h3>Save / Load</h3>
                 <div class="settings-row">
-                    <button class="btn btn-primary" onclick="UI.actionSave()">Save Game</button>
+                    <button class="btn btn-primary" onclick="UI.actionSave()">Quick Save</button>
                     <span class="save-info">${manualInfo ? 'Last saved: ' + manualInfo.date : 'No manual save'}</span>
                 </div>
                 <div class="settings-row">
                     <button class="btn btn-secondary" onclick="UI.actionLoad('manual')">Load Save</button>
                     <button class="btn btn-secondary" onclick="UI.actionLoad('auto')">Load Autosave</button>
                     <span class="save-info">${autoInfo ? 'Autosave: ' + autoInfo.date : 'No autosave'}</span>
+                </div>
+                <div class="settings-row">
+                    <button class="btn btn-primary" onclick="UI.showTab('saves')">Save Manager (Unlimited Slots)</button>
                 </div>
                 <div class="settings-row">
                     <button class="btn btn-secondary" onclick="SaveEngine.exportSave()">Export Save</button>
@@ -1137,7 +1254,10 @@ const UI = {
                             <div><strong>Salary:</strong> ${Utils.formatMoneyFull(player.contract.salary)}</div>
                             <div><strong>Years Remaining:</strong> ${player.contract.years - player.contract.yearsSigned}</div>
                             <div><strong>Total Value:</strong> ${Utils.formatMoneyFull(player.contract.totalValue)}</div>
-                        </div>` : '<div class="empty-state">No active contract</div>'}
+                        </div>
+                        ${player.teamId === game.userTeamId && ContractEngine.getExtensionEligible(player) ? `
+                        <button class="btn btn-primary" style="margin-top: 12px;" onclick="UI.showExtensionModal('${player.id}')">Offer Extension</button>` : ''}
+                        ` : '<div class="empty-state">No active contract</div>'}
                     </div>
 
                     ${player.careerStats && player.careerStats.length > 0 ? `
@@ -1314,6 +1434,78 @@ const UI = {
         </div>`;
 
         document.getElementById('modal-container').innerHTML = html;
+    },
+
+    showExtensionModal(playerId) {
+        const player = game.players.find(p => p.id === playerId);
+        if (!player || !player.contract) return;
+
+        const marketValue = PlayerEngine.estimateMarketValue(player);
+        const suggestedYears = PlayerEngine.estimateContractYears(player);
+
+        const html = `
+        <div class="modal-overlay" onclick="UI.closeModal()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <button class="modal-close" onclick="UI.closeModal()">&times;</button>
+                <h2>Contract Extension - ${PlayerEngine.getFullName(player)}</h2>
+                <div class="player-meta" style="margin-bottom: 20px;">
+                    <span class="pos-badge pos-${player.position}">${player.position}</span>
+                    <span class="ovr-badge ${Utils.getOvrClass(player.ovr)}">${player.ovr} OVR</span>
+                    <span>Age: ${player.age}</span>
+                </div>
+                <div class="sign-info">
+                    <p>Current Salary: <strong>${Utils.formatMoneyFull(player.contract.salary)}</strong>/year</p>
+                    <p>Years Remaining: <strong>${player.contract.years - player.contract.yearsSigned}</strong></p>
+                    <p>Estimated Market Value: <strong>${Utils.formatMoneyFull(marketValue)}</strong>/year</p>
+                </div>
+                <div class="sign-form">
+                    <div class="form-group">
+                        <label>Annual Salary ($)</label>
+                        <input type="number" id="ext-salary" value="${marketValue}" min="${CONFIG.MIN_SALARY}" max="${CONFIG.MAX_SALARY}" step="100000">
+                    </div>
+                    <div class="form-group">
+                        <label>Contract Years</label>
+                        <input type="number" id="ext-years" value="${suggestedYears}" min="1" max="5">
+                    </div>
+                    <div id="ext-result"></div>
+                    <button class="btn btn-primary btn-lg" onclick="UI.submitExtension('${player.id}')">Submit Extension Offer</button>
+                </div>
+            </div>
+        </div>`;
+
+        document.getElementById('modal-container').innerHTML = html;
+    },
+
+    submitExtension(playerId) {
+        const salary = parseInt(document.getElementById('ext-salary').value);
+        const years = parseInt(document.getElementById('ext-years').value);
+
+        if (!salary || !years) {
+            document.getElementById('ext-result').innerHTML = '<div class="alert alert-error">Enter valid salary and years.</div>';
+            return;
+        }
+
+        const player = game.players.find(p => p.id === playerId);
+        if (!player) return;
+
+        const settings = game.gameSettings || DEFAULT_GAME_SETTINGS;
+        const team = game.getUserTeam();
+        const prestige = team ? 50 : 50;
+        const result = ContractEngine.offerExtension(player, salary, years, prestige, settings);
+
+        const resultDiv = document.getElementById('ext-result');
+        if (result.accepted) {
+            resultDiv.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+            game.addMessage(result.message);
+            game.autoSave();
+            setTimeout(() => { this.closeModal(); this.refresh(); }, 1500);
+        } else {
+            let counterHtml = '';
+            if (result.counterOffer) {
+                counterHtml = `<p>Counter: ${Utils.formatMoneyFull(result.counterOffer.salary)}/yr for ${result.counterOffer.years} years</p>`;
+            }
+            resultDiv.innerHTML = `<div class="alert alert-error">${result.message}${counterHtml}</div>`;
+        }
     },
 
     closeModal() {
@@ -1517,7 +1709,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="start-buttons">
                     ${SaveEngine.hasSave('auto') ? '<button class="btn btn-primary btn-lg" onclick="UI.actionLoad(\'auto\'); document.querySelector(\'.start-screen\').remove();">Continue (Autosave)</button>' : ''}
                     ${SaveEngine.hasSave('manual') ? '<button class="btn btn-secondary btn-lg" onclick="UI.actionLoad(\'manual\'); document.querySelector(\'.start-screen\').remove();">Load Manual Save</button>' : ''}
-                    <button class="btn btn-warning btn-lg" onclick="document.querySelector('.start-screen').remove(); UI.showNewGameModal();">New Game</button>
+                    <button class="btn btn-warning btn-lg" onclick="document.querySelector('.start-screen').remove(); UI.showNewGameModal();">New GM Game</button>
+                    <button class="btn btn-secondary btn-lg" onclick="document.querySelector('.start-screen').remove(); CareerUI.showCareerCreateModal();">New Player Career</button>
                 </div>
             </div>
         </div>`;

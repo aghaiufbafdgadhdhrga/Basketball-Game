@@ -1211,3 +1211,690 @@ select:focus { outline: none; border-color: var(--accent); }
 .file-upload-btn {
     cursor: pointer;
 }
+
+/* === ENHANCED SIMULATION PANEL === */
+.sim-dashboard-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.sim-record-card {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sim-record-big {
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sim-record-pct {
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-top: 4px;
+}
+
+.sim-record-details {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.sim-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.upcoming-games-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.upcoming-game-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.upcoming-day {
+    color: var(--text-muted);
+    font-size: 12px;
+    min-width: 50px;
+}
+
+.upcoming-matchup {
+    font-weight: 600;
+}
+
+/* === SAVE MANAGER === */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.save-slots-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.save-slot-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.save-slot-item:hover {
+    background: var(--bg-hover);
+}
+
+.save-slot-name {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.save-slot-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.save-slot-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* === CAREER MODE === */
+.career-create-form {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.career-create-form .form-group {
+    margin-bottom: 16px;
+}
+
+.career-create-form label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.career-create-form input[type="text"],
+.career-create-form select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.career-physicals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+}
+
+.career-physicals-grid select {
+    width: 100%;
+    padding: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+}
+
+.career-attrs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.career-attr-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 50px;
+    align-items: center;
+    gap: 12px;
+}
+
+.career-attr-row label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.career-attr-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+}
+
+.career-attr-row .attr-val {
+    text-align: right;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.career-points-left {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+}
+
+.career-points-left.low { color: var(--red); }
+
+/* Career Tabs */
+.career-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0;
+    overflow-x: auto;
+}
+
+.career-tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.career-tab:hover {
+    color: var(--text-primary);
+}
+
+.career-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* Career Overview */
+.career-overview-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.career-player-card {
+    text-align: center;
+    padding: 24px;
+}
+
+.career-player-name {
+    font-size: 22px;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.career-player-phase {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.career-player-team {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.career-ovr-display {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 16px 0;
+}
+
+.career-ovr-item {
+    text-align: center;
+}
+
+.career-ovr-big {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.career-ovr-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-top: 4px;
+}
+
+.career-attrs-display {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 16px;
+    text-align: left;
+}
+
+.career-attr-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.career-attr-item .attr-label {
+    color: var(--text-muted);
+}
+
+.career-attr-item .attr-val {
+    font-weight: 700;
+}
+
+.career-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.career-status-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+}
+
+.career-status-card h4 {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.career-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+/* College Recruiting / Offers */
+.college-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.college-offer-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.college-offer-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.college-offer-card .offer-school {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.college-offer-card .offer-conf {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.prestige-bar {
+    height: 6px;
+    background: var(--bg-input);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.prestige-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+}
+
+.offer-details {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* March Madness Bracket */
+.march-madness-bracket {
+    overflow-x: auto;
+    padding: 16px 0;
+}
+
+.mm-bracket-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(160px, 1fr));
+    gap: 12px;
+    min-width: 1200px;
+}
+
+.mm-round {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mm-round-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.mm-matchup {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.mm-matchup.completed {
+    opacity: 0.7;
+}
+
+.mm-team {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mm-team:last-child {
+    border-bottom: none;
+}
+
+.mm-team.winner {
+    background: rgba(34, 197, 94, 0.1);
+    font-weight: 700;
+}
+
+.mm-team.user-team {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.mm-seed {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    min-width: 18px;
+}
+
+.mm-team-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mm-score {
+    font-weight: 700;
+    min-width: 24px;
+    text-align: right;
+}
+
+/* Mock Draft */
+.mock-draft-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.mock-draft-item {
+    display: grid;
+    grid-template-columns: 50px 1fr 60px 80px 80px;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.mock-draft-item:hover {
+    background: var(--bg-hover);
+}
+
+.mock-draft-item.user-player {
+    background: rgba(99, 102, 241, 0.08);
+    border-left: 3px solid var(--accent);
+}
+
+.mock-draft-pick {
+    font-weight: 900;
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+.mock-draft-name {
+    font-weight: 700;
+}
+
+.mock-draft-school {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* College Rankings */
+.rankings-table {
+    width: 100%;
+}
+
+.rankings-table .user-row {
+    background: rgba(99, 102, 241, 0.08);
+}
+
+/* Career History / Stats Archive */
+.career-season-history {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.career-season-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.career-season-year {
+    font-weight: 800;
+    font-size: 16px;
+    min-width: 80px;
+}
+
+.career-season-team {
+    font-weight: 600;
+    min-width: 120px;
+}
+
+.career-season-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Accolades */
+.accolades-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.accolade-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+}
+
+.accolade-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.accolade-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.accolade-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Career Mode Start Button on start screen */
+.career-mode-start {
+    margin-top: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+}
+
+/* Conference Standings in College */
+.conf-standings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.conf-standings-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+}
+
+.conf-standings-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent);
+}
+
+/* Transfer Portal */
+.transfer-portal-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.transfer-portal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.transfer-portal-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* NBA Career specific */
+.nba-team-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.nba-contract-info {
+    display: flex;
+    gap: 24px;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* Responsive adjustments for career mode */
+@media (max-width: 1200px) {
+    .career-overview-grid { grid-template-columns: 1fr; }
+    .sim-dashboard-grid { grid-template-columns: 1fr; }
+    .sim-columns { grid-template-columns: 1fr; }
+    .mm-bracket-grid { grid-template-columns: repeat(4, minmax(140px, 1fr)); }
+    .career-physicals-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+    .career-attrs-display { grid-template-columns: 1fr; }
+    .career-attr-row { grid-template-columns: 100px 1fr 40px; }
+    .mock-draft-item { grid-template-columns: 40px 1fr 50px; }
+    .mock-draft-item > :nth-child(4),
+    .mock-draft-item > :nth-child(5) { display: none; }
+    .college-offers-grid { grid-template-columns: 1fr; }
+}

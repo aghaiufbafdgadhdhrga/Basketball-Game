@@ -164,6 +164,70 @@ const ContractEngine = {
         return expiring;
     },
 
+    // Contract Extension - extend a player's current contract
+    offerExtension(player, offeredSalary, offeredYears, teamPrestige = 50, settings = null) {
+        if (!player.contract) {
+            return { accepted: false, message: `${PlayerEngine.getFullName(player)} has no active contract to extend.` };
+        }
+
+        const marketValue = PlayerEngine.estimateMarketValue(player);
+        const difficulty = settings ? settings.negotiationDifficulty : 'normal';
+        const diffSettings = DIFFICULTY_SETTINGS.negotiation[difficulty] || DIFFICULTY_SETTINGS.negotiation.normal;
+
+        // Extension demands are slightly higher than regular FA since player has leverage
+        let salaryThreshold = marketValue * 0.90 * diffSettings.salaryMultiplier;
+        let yearsThreshold = Math.max(2, PlayerEngine.estimateContractYears(player));
+
+        // Loyalty / morale discount
+        if (player.morale > 75) salaryThreshold *= 0.92;
+        else if (player.morale < 40) salaryThreshold *= 1.15;
+
+        // Prestige adjustment
+        if (teamPrestige > 70) salaryThreshold *= 0.90;
+        else if (teamPrestige < 30) salaryThreshold *= 1.12;
+
+        // Age adjustment - older players accept less
+        if (player.age > 32) salaryThreshold *= 0.85;
+        else if (player.age > 28) salaryThreshold *= 0.95;
+
+        const salaryOk = offeredSalary >= salaryThreshold;
+        const yearsOk = offeredYears >= yearsThreshold;
+
+        if (salaryOk && yearsOk) {
+            const newContract = this.createContract(offeredSalary, offeredYears);
+            player.contract = newContract;
+            return {
+                accepted: true,
+                message: `${PlayerEngine.getFullName(player)} signed a ${offeredYears}-year extension worth ${Utils.formatMoney(offeredSalary * offeredYears)}!`,
+                contract: newContract,
+            };
+        }
+
+        const counterSalary = Math.round(salaryThreshold * Utils.randFloat(1.0, 1.15));
+        const counterYears = yearsThreshold;
+
+        let reason = '';
+        if (!salaryOk && !yearsOk) reason = 'wants more money and a longer deal';
+        else if (!salaryOk) reason = 'wants a higher salary';
+        else reason = 'wants more years';
+
+        return {
+            accepted: false,
+            message: `${PlayerEngine.getFullName(player)} declined the extension - ${reason}.`,
+            counterOffer: { salary: counterSalary, years: counterYears },
+            playerDemands: { minSalary: Math.round(salaryThreshold), minYears: yearsThreshold },
+        };
+    },
+
+    // Get extension-eligible players (in last 2 years of contract)
+    getExtensionEligible(players) {
+        return players.filter(p => {
+            if (!p.contract) return false;
+            const remaining = p.contract.years - p.contract.yearsSigned;
+            return remaining <= 2 && remaining > 0;
+        });
+    },
+
     // AI team signs free agents
     aiSignFreeAgents(team, freePlayers, allTeamPlayers) {
         const teamPlayers = allTeamPlayers.filter(p => p.teamId === team.id);
