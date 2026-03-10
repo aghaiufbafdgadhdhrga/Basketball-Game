@@ -215,8 +215,8 @@ const UI = {
                 ${players.map(p => {
                     const avg = PlayerEngine.getAverages(p.seasonStats);
                     return `
-                    <tr class="clickable" onclick="UI.showPlayerModal('${p.id}')">
-                        <td class="player-name">${PlayerEngine.getFullName(p)}</td>
+                    <tr class="clickable ${p.injury && p.injury.gamesRemaining > 0 ? 'injured-row' : ''}" onclick="UI.showPlayerModal('${p.id}')">
+                        <td class="player-name">${PlayerEngine.getFullName(p)}${p.injury && p.injury.gamesRemaining > 0 ? ` <span style="color: #f87171; font-size: 0.75rem;" title="${p.injury.type} - ${p.injury.gamesRemaining} games">INJ</span>` : ''}</td>
                         <td><span class="pos-badge pos-${p.position}">${p.position}</span></td>
                         <td>${p.age}</td>
                         <td><span class="ovr-badge ${Utils.getOvrClass(p.ovr)}">${p.ovr}</span></td>
@@ -797,7 +797,7 @@ const UI = {
     trainPlayerNow(playerId) {
         const player = game.players.find(p => p.id === playerId);
         if (!player) return;
-        const result = TrainingEngine.applyIndividualTraining(player, player.trainingFocus);
+        const result = TrainingEngine.applyIndividualTraining(player, player.trainingFocus, game.gameSettings);
         if (result) {
             this.showToast(`${result.player} trained in ${result.focus}. OVR: ${result.newOvr}`);
         }
