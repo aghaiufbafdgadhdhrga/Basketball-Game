@@ -17,8 +17,12 @@ const TrainingEngine = {
     },
 
     // Apply weekly training to all team players
-    applyWeeklyTraining(players, schedule) {
+    applyWeeklyTraining(players, schedule, gameSettings = null) {
         const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        // Get development speed multiplier from game settings
+        const devSpeed = gameSettings ? gameSettings.developerSpeed : 'normal';
+        const growthMult = (DIFFICULTY_SETTINGS.development[devSpeed] || DIFFICULTY_SETTINGS.development.normal).growthMultiplier;
 
         for (const player of players) {
             let totalBoost = 0;
@@ -45,6 +49,9 @@ const TrainingEngine = {
                     effectiveness *= 1.2;
                 }
 
+                // Apply development speed setting
+                effectiveness *= growthMult;
+
                 // Apply small boost to focus attributes
                 for (const attr of focusData.attrs) {
                     const boost = Utils.randFloat(0.01, 0.08) * effectiveness;
@@ -67,9 +74,13 @@ const TrainingEngine = {
     },
 
     // Individual training session
-    applyIndividualTraining(player, focus) {
+    applyIndividualTraining(player, focus, gameSettings = null) {
         const focusData = TRAINING_FOCUSES[focus];
         if (!focusData) return;
+
+        // Get development speed multiplier
+        const devSpeed = gameSettings ? gameSettings.developerSpeed : 'normal';
+        const growthMult = (DIFFICULTY_SETTINGS.development[devSpeed] || DIFFICULTY_SETTINGS.development.normal).growthMultiplier;
 
         let effectiveness = 1.0;
         if (player.age <= 23) effectiveness = 1.4;
@@ -79,6 +90,9 @@ const TrainingEngine = {
         if (player.ovr < player.potential) {
             effectiveness *= 1.25;
         }
+
+        // Apply development speed setting
+        effectiveness *= growthMult;
 
         for (const attr of focusData.attrs) {
             const boost = Utils.randFloat(0.05, 0.15) * effectiveness;
