@@ -196,3 +196,137 @@ const LAST_NAMES = [
     'Murray', 'Freeman', 'Wells', 'Webb', 'Simpson', 'Stevens', 'Tucker', 'Dixon', 'Hunt', 'Palmer',
     'Grant', 'Hamilton', 'Duncan', 'Crawford', 'Cunningham', 'George', 'Burton', 'Hayes', 'Griffin', 'Payne'
 ];
+
+// ============================================================
+// CAREER MODE CONFIG
+// ============================================================
+
+const CAREER_CONFIG = {
+    HS_SEASONS: 4,
+    HS_GAMES_PER_SEASON: 25,
+    COLLEGE_GAMES_PER_SEASON: 30,
+    COLLEGE_MAX_YEARS: 4,
+    MARCH_MADNESS_TEAMS: 64,
+    CONFERENCE_AUTO_BIDS: 32,
+    AT_LARGE_BIDS: 32,
+    PLAYER_CREATE_POINTS: 350,
+    ATTR_MIN: 25,
+    ATTR_MAX: 85,
+    NBA_CAREER_MAX_YEARS: 20,
+};
+
+// High School tiers
+const HS_TIERS = ['Elite Prep', 'Top Program', 'Competitive', 'Average', 'Developing'];
+
+// College Conferences
+const COLLEGE_CONFERENCES = [
+    { name: 'ACC', prestige: 95 },
+    { name: 'Big Ten', prestige: 93 },
+    { name: 'SEC', prestige: 92 },
+    { name: 'Big 12', prestige: 90 },
+    { name: 'Big East', prestige: 88 },
+    { name: 'Pac-12', prestige: 85 },
+    { name: 'AAC', prestige: 72 },
+    { name: 'Mountain West', prestige: 68 },
+    { name: 'WCC', prestige: 65 },
+    { name: 'A-10', prestige: 63 },
+    { name: 'Missouri Valley', prestige: 58 },
+    { name: 'Colonial', prestige: 52 },
+    { name: 'Horizon', prestige: 50 },
+    { name: 'Sun Belt', prestige: 48 },
+    { name: 'MAC', prestige: 46 },
+    { name: 'Patriot', prestige: 44 },
+];
+
+// College Teams (4 per conference = 64 teams for March Madness)
+const COLLEGE_TEAMS_DATA = [
+    // ACC
+    { name: 'Duke', mascot: 'Blue Devils', abbr: 'DUKE', conference: 'ACC', prestige: 98 },
+    { name: 'North Carolina', mascot: 'Tar Heels', abbr: 'UNC', conference: 'ACC', prestige: 97 },
+    { name: 'Virginia', mascot: 'Cavaliers', abbr: 'UVA', conference: 'ACC', prestige: 88 },
+    { name: 'Louisville', mascot: 'Cardinals', abbr: 'LOU', conference: 'ACC', prestige: 85 },
+    // Big Ten
+    { name: 'Michigan State', mascot: 'Spartans', abbr: 'MSU', conference: 'Big Ten', prestige: 95 },
+    { name: 'Michigan', mascot: 'Wolverines', abbr: 'MICH', conference: 'Big Ten', prestige: 88 },
+    { name: 'Purdue', mascot: 'Boilermakers', abbr: 'PUR', conference: 'Big Ten', prestige: 87 },
+    { name: 'Illinois', mascot: 'Fighting Illini', abbr: 'ILL', conference: 'Big Ten', prestige: 82 },
+    // SEC
+    { name: 'Kentucky', mascot: 'Wildcats', abbr: 'UK', conference: 'SEC', prestige: 97 },
+    { name: 'Auburn', mascot: 'Tigers', abbr: 'AUB', conference: 'SEC', prestige: 85 },
+    { name: 'Tennessee', mascot: 'Volunteers', abbr: 'TENN', conference: 'SEC', prestige: 83 },
+    { name: 'Alabama', mascot: 'Crimson Tide', abbr: 'BAMA', conference: 'SEC', prestige: 80 },
+    // Big 12
+    { name: 'Kansas', mascot: 'Jayhawks', abbr: 'KU', conference: 'Big 12', prestige: 97 },
+    { name: 'Baylor', mascot: 'Bears', abbr: 'BAY', conference: 'Big 12', prestige: 86 },
+    { name: 'Texas', mascot: 'Longhorns', abbr: 'TEX', conference: 'Big 12', prestige: 84 },
+    { name: 'Houston', mascot: 'Cougars', abbr: 'HOU', conference: 'Big 12', prestige: 82 },
+    // Big East
+    { name: 'Villanova', mascot: 'Wildcats', abbr: 'NOVA', conference: 'Big East', prestige: 93 },
+    { name: 'UConn', mascot: 'Huskies', abbr: 'UCONN', conference: 'Big East', prestige: 95 },
+    { name: 'Creighton', mascot: 'Bluejays', abbr: 'CREI', conference: 'Big East', prestige: 78 },
+    { name: 'Marquette', mascot: 'Golden Eagles', abbr: 'MARQ', conference: 'Big East', prestige: 75 },
+    // Pac-12
+    { name: 'UCLA', mascot: 'Bruins', abbr: 'UCLA', conference: 'Pac-12', prestige: 95 },
+    { name: 'Arizona', mascot: 'Wildcats', abbr: 'ARIZ', conference: 'Pac-12', prestige: 90 },
+    { name: 'Oregon', mascot: 'Ducks', abbr: 'ORE', conference: 'Pac-12', prestige: 78 },
+    { name: 'USC', mascot: 'Trojans', abbr: 'USC', conference: 'Pac-12', prestige: 76 },
+    // AAC
+    { name: 'Memphis', mascot: 'Tigers', abbr: 'MEM', conference: 'AAC', prestige: 78 },
+    { name: 'SMU', mascot: 'Mustangs', abbr: 'SMU', conference: 'AAC', prestige: 68 },
+    { name: 'Wichita State', mascot: 'Shockers', abbr: 'WICH', conference: 'AAC', prestige: 72 },
+    { name: 'Temple', mascot: 'Owls', abbr: 'TEM', conference: 'AAC', prestige: 65 },
+    // Mountain West
+    { name: 'San Diego State', mascot: 'Aztecs', abbr: 'SDSU', conference: 'Mountain West', prestige: 75 },
+    { name: 'Nevada', mascot: 'Wolf Pack', abbr: 'NEV', conference: 'Mountain West', prestige: 68 },
+    { name: 'Boise State', mascot: 'Broncos', abbr: 'BSU', conference: 'Mountain West', prestige: 62 },
+    { name: 'Colorado State', mascot: 'Rams', abbr: 'CSU', conference: 'Mountain West', prestige: 58 },
+    // WCC
+    { name: 'Gonzaga', mascot: 'Bulldogs', abbr: 'GONZ', conference: 'WCC', prestige: 96 },
+    { name: 'Saint Mary\'s', mascot: 'Gaels', abbr: 'SMC', conference: 'WCC', prestige: 75 },
+    { name: 'BYU', mascot: 'Cougars', abbr: 'BYU', conference: 'WCC', prestige: 72 },
+    { name: 'San Francisco', mascot: 'Dons', abbr: 'USF', conference: 'WCC', prestige: 60 },
+    // A-10
+    { name: 'Dayton', mascot: 'Flyers', abbr: 'DAY', conference: 'A-10', prestige: 72 },
+    { name: 'VCU', mascot: 'Rams', abbr: 'VCU', conference: 'A-10', prestige: 70 },
+    { name: 'Saint Louis', mascot: 'Billikens', abbr: 'SLU', conference: 'A-10', prestige: 62 },
+    { name: 'Richmond', mascot: 'Spiders', abbr: 'RICH', conference: 'A-10', prestige: 58 },
+    // Missouri Valley
+    { name: 'Loyola Chicago', mascot: 'Ramblers', abbr: 'LUC', conference: 'Missouri Valley', prestige: 65 },
+    { name: 'Drake', mascot: 'Bulldogs', abbr: 'DRAK', conference: 'Missouri Valley', prestige: 58 },
+    { name: 'Bradley', mascot: 'Braves', abbr: 'BRAD', conference: 'Missouri Valley', prestige: 50 },
+    { name: 'Missouri State', mascot: 'Bears', abbr: 'MOST', conference: 'Missouri Valley', prestige: 48 },
+    // Colonial
+    { name: 'Charleston', mascot: 'Cougars', abbr: 'CHAR', conference: 'Colonial', prestige: 58 },
+    { name: 'Hofstra', mascot: 'Pride', abbr: 'HOF', conference: 'Colonial', prestige: 50 },
+    { name: 'Drexel', mascot: 'Dragons', abbr: 'DREX', conference: 'Colonial', prestige: 48 },
+    { name: 'Delaware', mascot: 'Fightin Blue Hens', abbr: 'DEL', conference: 'Colonial', prestige: 45 },
+    // Horizon
+    { name: 'Wright State', mascot: 'Raiders', abbr: 'WRST', conference: 'Horizon', prestige: 52 },
+    { name: 'Northern Kentucky', mascot: 'Norse', abbr: 'NKU', conference: 'Horizon', prestige: 48 },
+    { name: 'Oakland', mascot: 'Grizzlies', abbr: 'OAK', conference: 'Horizon', prestige: 46 },
+    { name: 'Cleveland State', mascot: 'Vikings', abbr: 'CSU2', conference: 'Horizon', prestige: 42 },
+    // Sun Belt
+    { name: 'Louisiana', mascot: 'Ragin Cajuns', abbr: 'ULL', conference: 'Sun Belt', prestige: 55 },
+    { name: 'Georgia State', mascot: 'Panthers', abbr: 'GAST', conference: 'Sun Belt', prestige: 50 },
+    { name: 'Texas State', mascot: 'Bobcats', abbr: 'TXST', conference: 'Sun Belt', prestige: 45 },
+    { name: 'App State', mascot: 'Mountaineers', abbr: 'APP', conference: 'Sun Belt', prestige: 44 },
+    // MAC
+    { name: 'Ohio', mascot: 'Bobcats', abbr: 'OHIO', conference: 'MAC', prestige: 55 },
+    { name: 'Toledo', mascot: 'Rockets', abbr: 'TOL', conference: 'MAC', prestige: 50 },
+    { name: 'Buffalo', mascot: 'Bulls', abbr: 'BUFF', conference: 'MAC', prestige: 48 },
+    { name: 'Kent State', mascot: 'Golden Flashes', abbr: 'KENT', conference: 'MAC', prestige: 45 },
+    // Patriot
+    { name: 'Navy', mascot: 'Midshipmen', abbr: 'NAVY', conference: 'Patriot', prestige: 52 },
+    { name: 'Army', mascot: 'Black Knights', abbr: 'ARMY', conference: 'Patriot', prestige: 48 },
+    { name: 'Colgate', mascot: 'Raiders', abbr: 'COLG', conference: 'Patriot', prestige: 50 },
+    { name: 'Bucknell', mascot: 'Bison', abbr: 'BUCK', conference: 'Patriot', prestige: 46 },
+];
+
+// High School names
+const HS_NAMES = [
+    'Oak Hill Academy', 'Montverde Academy', 'IMG Academy', 'Sierra Canyon',
+    'Duncanville', 'La Lumiere', 'Sunrise Christian', 'AZ Compass Prep',
+    'Prolific Prep', 'Wasatch Academy', 'Brewster Academy', 'Findlay Prep',
+    'DeMatha Catholic', 'St. Vincent-St. Mary', 'Mater Dei', 'Bishop Gorman',
+    'Centennial', 'Hillcrest Prep', 'Link Academy', 'Heritage Christian',
+];

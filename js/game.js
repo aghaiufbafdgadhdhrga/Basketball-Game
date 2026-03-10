@@ -650,6 +650,15 @@ const game = {
         return SaveEngine.save(SaveEngine.getGameState(), 'manual');
     },
 
+    // Save to a named slot
+    saveToSlot(slotId, name) {
+        if (slotId) {
+            return SaveEngine.save(SaveEngine.getGameState(), slotId, name);
+        } else {
+            return SaveEngine.createNewSlot(SaveEngine.getGameState(), name);
+        }
+    },
+
     // Load game
     loadGame(slot = 'manual') {
         const result = SaveEngine.load(slot);
